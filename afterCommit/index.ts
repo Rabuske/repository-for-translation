@@ -28,14 +28,14 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     let webhookPushPayload = <Webhooks.WebhookPayloadPush> req.body;
     
     // In case the push did not happen on master, ignore the event
-    if(!webhookPushPayload.ref.includes("master")) {
-        const nothingHappened = 'Push did not occur on master'; 
-        context.log(nothingHappened)
-        context.res = { body: nothingHappened };                
-    } else{
+    //if(!webhookPushPayload.ref.includes("master")) {
+     //   const nothingHappened = 'Push did not occur on master'; 
+      //  context.log(nothingHappened)
+      //  context.res = { body: nothingHappened };                
+    //} else{
         const propertiesFinder = new PropertiesFinder( webhookPushPayload.repository.owner.login, webhookPushPayload.repository.name, webhookPushPayload.after); 
         context.res = { body : propertiesFinder.getUrlOfAllPropertiesFiles() };
-    }
+    //}
 };
 
 export default httpTrigger;
