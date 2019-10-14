@@ -4,8 +4,8 @@
       "name": "mySbMsg",
       "type": "serviceBusTrigger",
       "direction": "in",
-      "queueName": "github-connector_QUEUE",
-      "connection": "github-connector_SERVICEBUS"
+      "queueName": "github_connector_QUEUE",
+      "connection": "github_connector_SERVICEBUS"
     },
     {
       "name": "outputBlob",

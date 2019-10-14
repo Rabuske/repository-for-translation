@@ -18,8 +18,8 @@
     {
       "name": "outputSbQueue",
       "type": "serviceBus",
-      "queueName": "github-connector_QUEUE",
-      "connection": "github-connector_SERVICEBUS",
+      "queueName": "github_connector_QUEUE",
+      "connection": "github_connector_SERVICEBUS",
       "direction": "out"
     }    
   ],
