@@ -1,0 +1,2 @@
+1) Go to azure and create an APP
+2) Install VS Code extension and azure tools
