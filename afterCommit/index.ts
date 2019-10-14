@@ -1,24 +1,35 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import Octokit = require("@octokit/rest");
 import Webhooks = require('@octokit/webhooks')
+import { ServiceBusClient, SendableMessageInfo } from "@azure/service-bus";
 
-class PropertiesFinder{
+// Dot env provide our environment variables
+require('dotenv').config()
+
+class PropertiesFilesFinder{
     private octokit: Octokit;
+    private context: Context;
     private owner: string;
     private repo: string;
     private treeSha: string;
 
-    constructor(owner:string, repo: string, treeSha:string){
+    constructor(context:Context, owner:string, repo: string, treeSha:string){
         this.octokit = new Octokit();
+        this.context = context;
         this.owner = owner;
         this.repo = repo;
         this.treeSha = treeSha;
     }
 
     public async getUrlOfAllPropertiesFiles():Promise<string[]>{
-        let response = await this.octokit.git.getTree({tree_sha: this.treeSha, owner : this.owner, repo: this.repo});
-        let files = response.data.tree.map((tree) => (tree.path)).filter((path) => path.endsWith(".properties")); 
-        return Promise.resolve(files);
+        return this.octokit.git.getTree({tree_sha: this.treeSha, owner : this.owner, repo: this.repo, recursive: '1'}).then(
+            response => response.data.tree.map((tree) => (tree.path)).filter((path) => path.endsWith(".properties"))            
+        ).catch(
+            reason => { 
+                this.context.log(reason)
+                return [];
+            }            
+        );
     }
 }
 
@@ -27,15 +38,28 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
 
     let webhookPushPayload = <Webhooks.WebhookPayloadPush> req.body;
     
-    // In case the push did not happen on master, ignore the event
-    //if(!webhookPushPayload.ref.includes("master")) {
-     //   const nothingHappened = 'Push did not occur on master'; 
-      //  context.log(nothingHappened)
-      //  context.res = { body: nothingHappened };                
-    //} else{
-        const propertiesFinder = new PropertiesFinder( webhookPushPayload.repository.owner.login, webhookPushPayload.repository.name, webhookPushPayload.after); 
-        context.res = { body : propertiesFinder.getUrlOfAllPropertiesFiles() };
-    //}
+    // Get the list of properties files from GitHub
+    const propertiesFilesFinder = new PropertiesFilesFinder(context, webhookPushPayload.repository.owner.login, webhookPushPayload.repository.name, webhookPushPayload.after); 
+    let files = await propertiesFilesFinder.getUrlOfAllPropertiesFiles();
+    
+    // Publish a message for each file
+    const sbClient = ServiceBusClient.createFromConnectionString(process.env.SERV_BUS_CONN_STRING);
+    const queueClient = sbClient.createQueueClient(process.env.QUEUE_NAME);
+    const sender = queueClient.createSender();
+
+    files.forEach(file => {
+        const message: SendableMessageInfo = {
+            body: {
+                fileName: file,
+                repository: webhookPushPayload.repository.name,
+                owner: webhookPushPayload.repository.owner.login
+            }
+        }
+        sender.send(message);
+    });
+    sender.close();
+
+    context.res = { body: "Success"};
 };
 
 export default httpTrigger;
