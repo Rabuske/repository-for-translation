@@ -1,0 +1,18 @@
+{
+  "bindings": [
+    {
+      "name": "mySbMsg",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "queueName": "properties.files",
+      "connection": "github-connector_SERVICEBUS"
+    },
+    {
+      "name": "outputBlob",
+      "type": "blob",
+      "direction": "out",
+      "path": "output-container/{rand-guid}.properties"
+    }    
+  ],
+  "scriptFile": "../dist/retrieveFiles/index.js"
+}

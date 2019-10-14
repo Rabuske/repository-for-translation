@@ -14,7 +14,14 @@
       "type": "http",
       "direction": "out",
       "name": "res"
-    }
+    },
+    {
+      "name": "outputSbQueue",
+      "type": "serviceBus",
+      "queueName": "properties.files",
+      "connection": "github-connector_SERVICEBUS",
+      "direction": "out"
+    }    
   ],
   "scriptFile": "../dist/afterCommit/index.js"
 }

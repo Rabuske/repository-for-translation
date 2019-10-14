@@ -1,10 +1,14 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import Octokit = require("@octokit/rest");
 import Webhooks = require('@octokit/webhooks')
-import { ServiceBusClient, SendableMessageInfo } from "@azure/service-bus";
 
 // Dot env provide our environment variables
 require('dotenv').config()
+
+interface File{
+    file_name: string;
+    file_sha: string;
+}
 
 class PropertiesFilesFinder{
     private octokit: Octokit;
@@ -21,9 +25,11 @@ class PropertiesFilesFinder{
         this.treeSha = treeSha;
     }
 
-    public async getUrlOfAllPropertiesFiles():Promise<string[]>{
+    public async getUrlOfAllPropertiesFiles():Promise<File[]>{
         return this.octokit.git.getTree({tree_sha: this.treeSha, owner : this.owner, repo: this.repo, recursive: '1'}).then(
-            response => response.data.tree.map((tree) => (tree.path)).filter((path) => path.endsWith(".properties"))            
+            response => {
+                return response.data.tree.map((tree) => ({ file_name: tree.path, file_sha: tree.sha})).filter((file) => file.file_name.endsWith(".properties"));
+            }
         ).catch(
             reason => { 
                 this.context.log(reason)
@@ -43,21 +49,20 @@ const httpTrigger: AzureFunction = async function (context: Context, req: HttpRe
     let files = await propertiesFilesFinder.getUrlOfAllPropertiesFiles();
     
     // Publish a message for each file
-    const sbClient = ServiceBusClient.createFromConnectionString(process.env.SERV_BUS_CONN_STRING);
-    const queueClient = sbClient.createQueueClient(process.env.QUEUE_NAME);
-    const sender = queueClient.createSender();
+    context.bindings.outputSbQueue = [];
 
     files.forEach(file => {
-        const message: SendableMessageInfo = {
+        let message = {
             body: {
-                fileName: file,
-                repository: webhookPushPayload.repository.name,
-                owner: webhookPushPayload.repository.owner.login
+                file_name: file.file_name,
+                repo: webhookPushPayload.repository.name,
+                owner: webhookPushPayload.repository.owner.login,
+                last_commit: webhookPushPayload.after,
+                file_sha: file.file_sha
             }
         }
-        sender.send(message);
+        context.bindings.outputSbQueue.push(message);
     });
-    sender.close();
 
     context.res = { body: "Success"};
 };
