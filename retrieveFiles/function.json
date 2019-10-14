@@ -4,7 +4,7 @@
       "name": "mySbMsg",
       "type": "serviceBusTrigger",
       "direction": "in",
-      "queueName": "github_connector_QUEUE",
+      "queueName": "properties.files",
       "connection": "github_connector_SERVICEBUS"
     },
     {

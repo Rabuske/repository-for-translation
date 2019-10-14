@@ -18,7 +18,7 @@
     {
       "name": "outputSbQueue",
       "type": "serviceBus",
-      "queueName": "github_connector_QUEUE",
+      "queueName": "properties.files",
       "connection": "github_connector_SERVICEBUS",
       "direction": "out"
     }    
