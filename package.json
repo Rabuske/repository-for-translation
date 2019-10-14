@@ -12,7 +12,6 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/service-bus": "^1.1.0",
     "@octokit/rest": "^16.33.1",
     "@octokit/webhooks": "^6.3.2",
     "dotenv": "^8.1.0",
