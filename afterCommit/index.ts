@@ -2,9 +2,6 @@ import { AzureFunction, Context, HttpRequest } from "@azure/functions"
 import Octokit = require("@octokit/rest");
 import Webhooks = require('@octokit/webhooks')
 
-// Dot env provide our environment variables
-require('dotenv').config()
-
 interface File{
     file_name: string;
     file_sha: string;

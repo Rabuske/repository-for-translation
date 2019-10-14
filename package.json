@@ -14,7 +14,6 @@
   "dependencies": {
     "@octokit/rest": "^16.33.1",
     "@octokit/webhooks": "^6.3.2",
-    "dotenv": "^8.1.0",
     "node": "12.8.0"
   },
   "devDependencies": {
