@@ -13,9 +13,12 @@
   },
   "dependencies": {
     "@octokit/rest": "^16.33.1",
+    "@octokit/webhooks": "^6.3.2",
+    "node": "12.8.0"
   },
   "devDependencies": {
     "@azure/functions": "^1.0.2-beta2",
+    "@types/node": "^12.7.12",
     "typescript": "^3.3.3"
   }
 }
